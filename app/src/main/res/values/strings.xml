@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Xtream</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="title_home">Inicio</string>
+    <string name="title_favorites">Favoritos</string>
+    <string name="title_tv">TV</string>
+    <string name="title_movies">Películas</string>
+    <string name="title_series">Series</string>
 </resources>
