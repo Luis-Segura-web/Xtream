@@ -5,15 +5,18 @@ import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Window
+import android.widget.Toast
 import com.bumptech.glide.Glide
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.hls.HlsMediaSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.common.util.UnstableApi
 import com.kybers.xtream.R
 import com.kybers.xtream.data.model.Movie
 import com.kybers.xtream.databinding.DialogMovieDetailsBinding
 
+@UnstableApi
 class MovieDetailsDialog(
     context: Context,
     private val movie: Movie,
@@ -55,6 +58,7 @@ class MovieDetailsDialog(
             exoPlayer?.prepare()
         } catch (e: Exception) {
             // Handle error loading movie
+            Toast.makeText(context, "Error al cargar la película", Toast.LENGTH_SHORT).show()
         }
     }
     

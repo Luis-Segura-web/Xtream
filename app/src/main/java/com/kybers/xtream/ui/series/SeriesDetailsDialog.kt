@@ -8,15 +8,17 @@ import android.view.Window
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.source.hls.HlsMediaSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.common.util.UnstableApi
 import com.kybers.xtream.R
 import com.kybers.xtream.data.model.Episode
 import com.kybers.xtream.data.model.Series
 import com.kybers.xtream.databinding.DialogSeriesDetailsBinding
 
+@UnstableApi
 class SeriesDetailsDialog(
     context: Context,
     private val series: Series,
