@@ -11,8 +11,12 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kybers.xtream.data.CacheManager
+import kotlinx.coroutines.launch
+import com.kybers.xtream.data.XtreamManager
 import com.kybers.xtream.data.model.Episode
 import com.kybers.xtream.data.model.Series
 import com.kybers.xtream.databinding.FragmentSeriesBinding
@@ -26,10 +30,9 @@ class SeriesFragment : Fragment() {
     private val binding get() = _binding!!
     
     private lateinit var cacheManager: CacheManager
+    private lateinit var xtreamManager: XtreamManager
     private lateinit var categoryAdapter: SeriesCategoryAdapter
-    private var allSeries: List<Series> = emptyList()
-    private var filteredSeries: List<Series> = emptyList()
-    private var currentSortSettings = SortSettings()
+    private val viewModel: SeriesViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,8 +47,10 @@ class SeriesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         cacheManager = CacheManager(requireContext())
+        xtreamManager = XtreamManager.getInstance(requireContext())
         setupRecyclerView()
         setupSearch()
+        setupObservers()
         loadSeries()
         startAnimations()
     }
@@ -58,6 +63,9 @@ class SeriesFragment : Fragment() {
         binding.rvSeriesCategories.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = categoryAdapter
+            // Optimizaciones de rendimiento
+            setHasFixedSize(true)
+            setItemViewCacheSize(10)
         }
     }
     
@@ -69,7 +77,7 @@ class SeriesFragment : Fragment() {
                 binding.btnClearSearch.visibility = if (s?.isNotEmpty() == true) View.VISIBLE else View.GONE
             }
             override fun afterTextChanged(s: Editable?) {
-                filterSeries(s.toString())
+                viewModel.searchSeries(s.toString())
             }
         })
         
@@ -82,40 +90,45 @@ class SeriesFragment : Fragment() {
         }
     }
     
-    private fun loadSeries() {
-        val cachedContent = cacheManager.getCachedContent()
-        if (cachedContent != null) {
-            allSeries = cachedContent.series
-            filteredSeries = allSeries
-            updateCategoriesDisplay()
-        }
-    }
-    
-    private fun filterSeries(query: String) {
-        val baseSeries = if (query.isEmpty()) {
-            allSeries
-        } else {
-            allSeries.filter { series ->
-                series.name.contains(query, ignoreCase = true)
+    private fun setupObservers() {
+        lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                updateUI(state)
             }
         }
+    }
+    
+    private fun updateUI(state: SeriesUiState) {
+        // Actualizar categorías
+        if (state.categories.isNotEmpty()) {
+            categoryAdapter.updateCategories(state.categories)
+        }
         
-        filteredSeries = applySortToSeries(baseSeries, currentSortSettings)
-        updateCategoriesDisplay()
-    }
-    
-    private fun updateCategoriesDisplay() {
-        val categories = filteredSeries.groupBy { it.category }
-        categoryAdapter.updateCategories(categories)
-        updateSeriesCount()
-    }
-    
-    private fun updateSeriesCount() {
-        val count = filteredSeries.size
-        val categoriesCount = filteredSeries.groupBy { it.category }.size
-        val text = "$count series en $categoriesCount categorías"
+        // Actualizar contador
+        val text = "${state.totalSeries} series en ${state.totalCategories} categorías"
         binding.tvSeriesCount.text = text
+        
+        // Mostrar error si existe
+        state.error?.let { error ->
+            Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+            viewModel.clearError()
+        }
     }
+    
+    private fun loadSeries() {
+        val cachedContent = xtreamManager.getCachedContent()
+        if (cachedContent != null) {
+            viewModel.loadSeries(cachedContent.series)
+        } else {
+            // No hay contenido en caché, mostrar mensaje para conectar
+            showNoContentMessage()
+        }
+    }
+    
+    private fun showNoContentMessage() {
+        Toast.makeText(requireContext(), "Configura tu conexión a Xtream Codes en la pestaña Dashboard", Toast.LENGTH_LONG).show()
+    }
+    
     
     private fun showSeriesDetails(series: Series) {
         val dialog = SeriesDetailsDialog(
@@ -165,47 +178,18 @@ class SeriesFragment : Fragment() {
         val dialog = SortOptionsDialog(
             requireContext(),
             "Series",
-            currentSortSettings
+            viewModel.uiState.value.sortSettings
         ) { newSettings ->
-            currentSortSettings = newSettings
-            applySorting()
+            viewModel.applySorting(newSettings)
+            
+            val message = when {
+                newSettings.categoriesSort != SortOption.DEFAULT || 
+                newSettings.itemsSort != SortOption.DEFAULT -> "Ordenamiento aplicado"
+                else -> "Orden restablecido"
+            }
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
         dialog.show()
-    }
-    
-    private fun applySorting() {
-        filteredSeries = applySortToSeries(filteredSeries, currentSortSettings)
-        updateCategoriesDisplay()
-        
-        val message = when {
-            currentSortSettings.categoriesSort != SortOption.DEFAULT || 
-            currentSortSettings.itemsSort != SortOption.DEFAULT -> "Ordenamiento aplicado"
-            else -> "Orden restablecido"
-        }
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-    }
-    
-    private fun applySortToSeries(
-        series: List<Series>,
-        settings: SortSettings
-    ): List<Series> {
-        val groupedSeries = series.groupBy { it.category }
-        
-        // Sort categories
-        val sortedCategories = when (settings.categoriesSort) {
-            SortOption.A_Z -> groupedSeries.toSortedMap()
-            SortOption.Z_A -> groupedSeries.toSortedMap(reverseOrder())
-            SortOption.DEFAULT -> groupedSeries
-        }
-        
-        // Sort series within each category and flatten
-        return sortedCategories.flatMap { (_, categorySeries) ->
-            when (settings.itemsSort) {
-                SortOption.A_Z -> categorySeries.sortedBy { it.name.lowercase() }
-                SortOption.Z_A -> categorySeries.sortedByDescending { it.name.lowercase() }
-                SortOption.DEFAULT -> categorySeries
-            }
-        }
     }
     
     private fun startAnimations() {
@@ -245,8 +229,15 @@ class SeriesFragment : Fragment() {
         listAnimatorSet.start()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Recargar contenido si se ha actualizado desde el Dashboard
+        loadSeries()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        categoryAdapter.clearCache()
         _binding = null
     }
 }

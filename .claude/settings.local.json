@@ -11,9 +11,14 @@
       "Bash(gradlew.bat assembleDebug:*)",
       "Bash(gradlew.bat build:*)",
       "Bash(kotlinc:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(.gradlew.bat assembleDebug)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\c\\GitHub"
+    ]
   }
 }

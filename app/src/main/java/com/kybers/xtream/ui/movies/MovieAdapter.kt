@@ -9,7 +9,7 @@ import com.kybers.xtream.data.model.Movie
 import com.kybers.xtream.databinding.ItemMovieBinding
 
 class MovieAdapter(
-    private val movies: List<Movie>,
+    private var movies: List<Movie>,
     private val onMovieClick: (Movie) -> Unit,
     private val onFavoriteClick: (Movie) -> Unit
 ) : RecyclerView.Adapter<MovieAdapter.MovieViewHolder>() {
@@ -69,4 +69,11 @@ class MovieAdapter(
     }
 
     override fun getItemCount() = movies.size
+    
+    fun updateMovies(newMovies: List<Movie>) {
+        if (movies != newMovies) {
+            movies = newMovies
+            notifyDataSetChanged()
+        }
+    }
 }

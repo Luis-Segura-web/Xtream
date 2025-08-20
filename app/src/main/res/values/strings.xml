@@ -5,4 +5,5 @@
     <string name="title_tv">TV</string>
     <string name="title_movies">Películas</string>
     <string name="title_series">Series</string>
+    <string name="title_dashboard">Configuración</string>
 </resources>

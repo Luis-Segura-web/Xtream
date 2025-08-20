@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.kybers.xtream.data.model.Series
 import com.kybers.xtream.databinding.ItemSeriesCategoryBinding
@@ -11,39 +12,57 @@ import com.kybers.xtream.databinding.ItemSeriesCategoryBinding
 class SeriesCategoryAdapter(
     private val onSeriesClick: (Series) -> Unit,
     private val onFavoriteClick: (Series) -> Unit
-) : RecyclerView.Adapter<SeriesCategoryAdapter.CategoryViewHolder>() {
+) : ListAdapter<SeriesCategoryItem, SeriesCategoryAdapter.CategoryViewHolder>(SeriesCategoryDiffCallback()) {
 
-    private var categories: Map<String, List<Series>> = emptyMap()
     private var expandedCategories = mutableSetOf<String>()
+    private val seriesAdapterCache = mutableMapOf<String, SeriesAdapter>()
 
-    class CategoryViewHolder(private val binding: ItemSeriesCategoryBinding) : 
+    class CategoryViewHolder(val binding: ItemSeriesCategoryBinding) : 
         RecyclerView.ViewHolder(binding.root) {
         
         fun bind(
-            categoryName: String, 
-            series: List<Series>, 
+            categoryItem: SeriesCategoryItem, 
             isExpanded: Boolean,
             onSeriesClick: (Series) -> Unit,
             onFavoriteClick: (Series) -> Unit,
+            seriesAdapterCache: MutableMap<String, SeriesAdapter>,
             onCategoryClick: (String) -> Unit
         ) {
-            binding.tvCategoryName.text = categoryName
-            binding.tvSeriesCount.text = series.size.toString()
+            binding.tvCategoryName.text = categoryItem.name
+            binding.tvSeriesCount.text = categoryItem.seriesCount.toString()
             
-            // Setup expand/collapse
-            binding.ivExpand.rotation = if (isExpanded) 180f else 0f
+            // Setup expand/collapse with animation
+            val targetRotation = if (isExpanded) 180f else 0f
+            if (binding.ivExpand.rotation != targetRotation) {
+                binding.ivExpand.animate()
+                    .rotation(targetRotation)
+                    .setDuration(200)
+                    .start()
+            }
+            
             binding.rvSeries.visibility = if (isExpanded) View.VISIBLE else View.GONE
             
             binding.llCategoryHeader.setOnClickListener {
-                onCategoryClick(categoryName)
+                onCategoryClick(categoryItem.name)
             }
             
-            // Setup series RecyclerView
+            // Setup series RecyclerView with caching
             if (isExpanded) {
-                val seriesAdapter = SeriesAdapter(series, onSeriesClick, onFavoriteClick)
-                binding.rvSeries.apply {
-                    layoutManager = LinearLayoutManager(binding.root.context)
-                    adapter = seriesAdapter
+                var seriesAdapter = seriesAdapterCache[categoryItem.name]
+                if (seriesAdapter == null) {
+                    seriesAdapter = SeriesAdapter(categoryItem.series, onSeriesClick, onFavoriteClick)
+                    seriesAdapterCache[categoryItem.name] = seriesAdapter
+                    
+                    binding.rvSeries.apply {
+                        layoutManager = LinearLayoutManager(binding.root.context)
+                        adapter = seriesAdapter
+                        // Optimizar RecyclerView
+                        setHasFixedSize(true)
+                        setItemViewCacheSize(20)
+                    }
+                } else {
+                    // Actualizar datos existentes si han cambiado
+                    seriesAdapter.updateSeries(categoryItem.series)
                 }
             }
         }
@@ -59,28 +78,54 @@ class SeriesCategoryAdapter(
     }
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
-        val categoryName = categories.keys.elementAt(position)
-        val series = categories[categoryName] ?: emptyList()
-        val isExpanded = expandedCategories.contains(categoryName)
+        val categoryItem = getItem(position)
+        val isExpanded = expandedCategories.contains(categoryItem.name)
         
-        holder.bind(categoryName, series, isExpanded, onSeriesClick, onFavoriteClick) { category ->
+        holder.bind(categoryItem, isExpanded, onSeriesClick, onFavoriteClick, seriesAdapterCache) { category ->
             toggleCategory(category)
         }
     }
-
-    override fun getItemCount() = categories.size
+    
+    override fun onBindViewHolder(holder: CategoryViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isNotEmpty()) {
+            val categoryItem = getItem(position)
+            val isExpanded = expandedCategories.contains(categoryItem.name)
+            
+            // Solo actualizar los cambios específicos
+            val changes = payloads.firstOrNull() as? List<String>
+            if (changes != null) {
+                if ("count" in changes) {
+                    holder.binding.tvSeriesCount.text = categoryItem.seriesCount.toString()
+                }
+                if ("series" in changes && isExpanded) {
+                    seriesAdapterCache[categoryItem.name]?.updateSeries(categoryItem.series)
+                }
+            }
+        } else {
+            onBindViewHolder(holder, position)
+        }
+    }
     
     fun updateCategories(newCategories: Map<String, List<Series>>) {
-        categories = newCategories
-        notifyDataSetChanged()
+        val categoryItems = newCategories.map { (name, series) ->
+            SeriesCategoryItem(name, series)
+        }
+        submitList(categoryItems)
     }
     
     private fun toggleCategory(categoryName: String) {
-        if (expandedCategories.contains(categoryName)) {
-            expandedCategories.remove(categoryName)
-        } else {
-            expandedCategories.add(categoryName)
+        val position = currentList.indexOfFirst { it.name == categoryName }
+        if (position != -1) {
+            if (expandedCategories.contains(categoryName)) {
+                expandedCategories.remove(categoryName)
+            } else {
+                expandedCategories.add(categoryName)
+            }
+            notifyItemChanged(position)
         }
-        notifyDataSetChanged()
+    }
+    
+    fun clearCache() {
+        seriesAdapterCache.clear()
     }
 }

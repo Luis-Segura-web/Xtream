@@ -12,12 +12,16 @@ import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.hls.HlsMediaSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import com.kybers.xtream.data.CacheManager
+import kotlinx.coroutines.launch
+import com.kybers.xtream.data.XtreamManager
 import com.kybers.xtream.data.model.Movie
 import com.kybers.xtream.databinding.FragmentMoviesBinding
 import com.kybers.xtream.ui.common.SortOption
@@ -30,10 +34,9 @@ class MoviesFragment : Fragment() {
     private val binding get() = _binding!!
     
     private lateinit var cacheManager: CacheManager
+    private lateinit var xtreamManager: XtreamManager
     private lateinit var categoryAdapter: MovieCategoryAdapter
-    private var allMovies: List<Movie> = emptyList()
-    private var filteredMovies: List<Movie> = emptyList()
-    private var currentSortSettings = SortSettings()
+    private val viewModel: MoviesViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,8 +51,10 @@ class MoviesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         
         cacheManager = CacheManager(requireContext())
+        xtreamManager = XtreamManager.getInstance(requireContext())
         setupRecyclerView()
         setupSearch()
+        setupObservers()
         loadMovies()
         startAnimations()
     }
@@ -62,6 +67,9 @@ class MoviesFragment : Fragment() {
         binding.rvMovieCategories.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = categoryAdapter
+            // Optimizaciones de rendimiento
+            setHasFixedSize(true)
+            setItemViewCacheSize(10)
         }
     }
     
@@ -73,7 +81,7 @@ class MoviesFragment : Fragment() {
                 binding.btnClearSearch.visibility = if (s?.isNotEmpty() == true) View.VISIBLE else View.GONE
             }
             override fun afterTextChanged(s: Editable?) {
-                filterMovies(s.toString())
+                viewModel.searchMovies(s.toString())
             }
         })
         
@@ -86,40 +94,48 @@ class MoviesFragment : Fragment() {
         }
     }
     
-    private fun loadMovies() {
-        val cachedContent = cacheManager.getCachedContent()
-        if (cachedContent != null) {
-            allMovies = cachedContent.movies
-            filteredMovies = allMovies
-            updateCategoriesDisplay()
-        }
-    }
-    
-    private fun filterMovies(query: String) {
-        val baseMovies = if (query.isEmpty()) {
-            allMovies
-        } else {
-            allMovies.filter { movie ->
-                movie.name.contains(query, ignoreCase = true)
+    private fun setupObservers() {
+        lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                updateUI(state)
             }
         }
+    }
+    
+    private fun updateUI(state: MoviesUiState) {
+        // Mostrar/ocultar indicador de carga
+        binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
         
-        filteredMovies = applySortToMovies(baseMovies, currentSortSettings)
-        updateCategoriesDisplay()
-    }
-    
-    private fun updateCategoriesDisplay() {
-        val categories = filteredMovies.groupBy { it.category }
-        categoryAdapter.updateCategories(categories)
-        updateMovieCount()
-    }
-    
-    private fun updateMovieCount() {
-        val count = filteredMovies.size
-        val categoriesCount = filteredMovies.groupBy { it.category }.size
-        val text = "$count películas en $categoriesCount categorías"
+        // Actualizar categorías
+        if (state.categories.isNotEmpty()) {
+            categoryAdapter.updateCategories(state.categories)
+        }
+        
+        // Actualizar contador
+        val text = "${state.totalMovies} películas en ${state.totalCategories} categorías"
         binding.tvMovieCount.text = text
+        
+        // Mostrar error si existe
+        state.error?.let { error ->
+            Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+            viewModel.clearError()
+        }
     }
+    
+    private fun loadMovies() {
+        val cachedContent = xtreamManager.getCachedContent()
+        if (cachedContent != null) {
+            viewModel.loadMovies(cachedContent.movies)
+        } else {
+            // No hay contenido en caché, mostrar mensaje para conectar
+            showNoContentMessage()
+        }
+    }
+    
+    private fun showNoContentMessage() {
+        Toast.makeText(requireContext(), "Configura tu conexión a Xtream Codes en la pestaña Dashboard", Toast.LENGTH_LONG).show()
+    }
+    
     
     private fun showMovieDetails(movie: Movie) {
         val dialog = MovieDetailsDialog(
@@ -169,47 +185,18 @@ class MoviesFragment : Fragment() {
         val dialog = SortOptionsDialog(
             requireContext(),
             "Películas",
-            currentSortSettings
+            viewModel.uiState.value.sortSettings
         ) { newSettings ->
-            currentSortSettings = newSettings
-            applySorting()
+            viewModel.applySorting(newSettings)
+            
+            val message = when {
+                newSettings.categoriesSort != SortOption.DEFAULT || 
+                newSettings.itemsSort != SortOption.DEFAULT -> "Ordenamiento aplicado"
+                else -> "Orden restablecido"
+            }
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
         dialog.show()
-    }
-    
-    private fun applySorting() {
-        filteredMovies = applySortToMovies(filteredMovies, currentSortSettings)
-        updateCategoriesDisplay()
-        
-        val message = when {
-            currentSortSettings.categoriesSort != SortOption.DEFAULT || 
-            currentSortSettings.itemsSort != SortOption.DEFAULT -> "Ordenamiento aplicado"
-            else -> "Orden restablecido"
-        }
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-    }
-    
-    private fun applySortToMovies(
-        movies: List<Movie>,
-        settings: SortSettings
-    ): List<Movie> {
-        val groupedMovies = movies.groupBy { it.category }
-        
-        // Sort categories
-        val sortedCategories = when (settings.categoriesSort) {
-            SortOption.A_Z -> groupedMovies.toSortedMap()
-            SortOption.Z_A -> groupedMovies.toSortedMap(reverseOrder())
-            SortOption.DEFAULT -> groupedMovies
-        }
-        
-        // Sort movies within each category and flatten
-        return sortedCategories.flatMap { (_, categoryMovies) ->
-            when (settings.itemsSort) {
-                SortOption.A_Z -> categoryMovies.sortedBy { it.name.lowercase() }
-                SortOption.Z_A -> categoryMovies.sortedByDescending { it.name.lowercase() }
-                SortOption.DEFAULT -> categoryMovies
-            }
-        }
     }
     
     private fun startAnimations() {
@@ -249,8 +236,15 @@ class MoviesFragment : Fragment() {
         listAnimatorSet.start()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Recargar contenido si se ha actualizado desde el Dashboard
+        loadMovies()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        categoryAdapter.clearCache()
         _binding = null
     }
 }

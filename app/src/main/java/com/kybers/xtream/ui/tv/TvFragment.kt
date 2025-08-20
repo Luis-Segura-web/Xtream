@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.kybers.xtream.data.CacheManager
 import com.kybers.xtream.data.FavoritesManager
+import com.kybers.xtream.data.XtreamManager
 import com.kybers.xtream.data.model.Channel
 import com.kybers.xtream.databinding.FragmentTvBinding
 import com.kybers.xtream.ui.common.SortOption
@@ -25,8 +27,13 @@ class TvFragment : Fragment() {
     private var _binding: FragmentTvBinding? = null
     private val binding get() = _binding!!
     
+    companion object {
+        private const val TAG = "TvFragment"
+    }
+    
     private lateinit var cacheManager: CacheManager
     private lateinit var favoritesManager: FavoritesManager
+    private lateinit var xtreamManager: XtreamManager
     private lateinit var categoryAdapter: CategoryAdapter
     private var allChannels: List<Channel> = emptyList()
     private var allCategories: Map<String, List<Channel>> = emptyMap()
@@ -47,6 +54,7 @@ class TvFragment : Fragment() {
         
         cacheManager = CacheManager(requireContext())
         favoritesManager = FavoritesManager(requireContext())
+        xtreamManager = XtreamManager.getInstance(requireContext())
         setupRecyclerView()
         setupSearch()
         loadChannels()
@@ -100,14 +108,29 @@ class TvFragment : Fragment() {
     }
     
     private fun loadChannels() {
-        val cachedContent = cacheManager.getCachedContent()
+        Log.d(TAG, "loadChannels() called")
+        val cachedContent = xtreamManager.getCachedContent()
         if (cachedContent != null) {
+            Log.d(TAG, "Found cached content with ${cachedContent.channels.size} channels")
             allChannels = cachedContent.channels
             allCategories = allChannels.groupBy { it.category }
             filteredCategories = allCategories
+            
+            if (cachedContent.channels.isNotEmpty()) {
+                Log.d(TAG, "First 5 channels: ${cachedContent.channels.take(5).map { "${it.name} (${it.category})" }}")
+            }
+            
             updateCategoriesDisplay()
             updateChannelCount()
+        } else {
+            Log.d(TAG, "No cached content found")
+            showNoContentMessage()
         }
+    }
+    
+    private fun showNoContentMessage() {
+        // TODO: Implementar vista de "sin contenido" o mensaje para ir a configuración
+        Toast.makeText(requireContext(), "Configura tu conexión a Xtream Codes en la pestaña Dashboard", Toast.LENGTH_LONG).show()
     }
     
     private fun filterChannels(query: String) {
@@ -227,6 +250,8 @@ class TvFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         updateFavorites()
+        // Recargar contenido si se ha actualizado desde el Dashboard
+        loadChannels()
     }
     
     override fun onDestroyView() {

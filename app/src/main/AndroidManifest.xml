@@ -45,6 +45,11 @@
             android:exported="false"
             android:label="@string/app_name" />
             
+        <activity
+            android:name=".ui.dashboard.TestConnectionActivity"
+            android:exported="false"
+            android:label="Test de Conexión" />
+            
     </application>
 
 </manifest>

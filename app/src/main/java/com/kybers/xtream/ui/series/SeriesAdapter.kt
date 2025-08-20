@@ -9,7 +9,7 @@ import com.kybers.xtream.data.model.Series
 import com.kybers.xtream.databinding.ItemSeriesBinding
 
 class SeriesAdapter(
-    private val series: List<Series>,
+    private var series: List<Series>,
     private val onSeriesClick: (Series) -> Unit,
     private val onFavoriteClick: (Series) -> Unit
 ) : RecyclerView.Adapter<SeriesAdapter.SeriesViewHolder>() {
@@ -70,4 +70,11 @@ class SeriesAdapter(
     }
 
     override fun getItemCount() = series.size
+    
+    fun updateSeries(newSeries: List<Series>) {
+        if (series != newSeries) {
+            series = newSeries
+            notifyDataSetChanged()
+        }
+    }
 }
