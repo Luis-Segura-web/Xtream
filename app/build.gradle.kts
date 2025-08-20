@@ -88,9 +88,9 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.navigation)
     
-    // Compose for TV
-    implementation(libs.compose.tv.foundation)
-    implementation(libs.compose.tv.material)
+    // Compose for TV (TODO: Enable when base is stable)
+    // implementation(libs.compose.tv.foundation)
+    // implementation(libs.compose.tv.material)
 
     // Room Database
     implementation(libs.room.runtime)
@@ -117,7 +117,6 @@ dependencies {
 
     // Images
     implementation(libs.coil.compose)
-    implementation(libs.coil.network.okhttp)
 
     // Dependency Injection
     implementation(libs.hilt.android)
