@@ -5,7 +5,13 @@
       "Bash(git add:*)",
       "Bash(git push:*)",
       "Bash(./gradlew.bat build:*)",
-      "Bash(./gradlew.bat:*)"
+      "Bash(./gradlew.bat:*)",
+      "Bash(.\\gradlew.bat build:*)",
+      "Bash(./gradlew:*)",
+      "Bash(gradlew.bat assembleDebug:*)",
+      "Bash(gradlew.bat build:*)",
+      "Bash(kotlinc:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,33 +1,182 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="12dp">
+    android:layout_marginVertical="4dp"
+    android:clickable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/surface_light"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp">
 
-    <ImageView
-        android:id="@+id/iv_channel_logo"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginEnd="12dp"
-        android:scaleType="centerCrop"
-        android:src="@mipmap/ic_launcher" />
-
-    <TextView
-        android:id="@+id/tv_channel_name"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textColor="@color/white"
-        android:textSize="14sp" />
+        android:padding="12dp">
 
-    <ImageView
-        android:id="@+id/iv_play"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@android:drawable/ic_media_play"
-        android:tint="@color/accent_orange" />
+        <!-- Channel Logo -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_logo"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            app:cardBackgroundColor="@color/accent_blue_light"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-</LinearLayout>
+            <ImageView
+                android:id="@+id/iv_channel_logo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="8dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_tv_24"
+                android:tint="@color/white"
+                tools:ignore="ContentDescription" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Channel Name -->
+        <TextView
+            android:id="@+id/tv_channel_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/text_primary_dark"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/btn_favorite"
+            app:layout_constraintStart_toEndOf="@+id/card_logo"
+            app:layout_constraintTop_toTopOf="@+id/card_logo"
+            tools:text="Canal Uno HD" />
+
+        <!-- Current Program -->
+        <LinearLayout
+            android:id="@+id/ll_current_program"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/current_program_background"
+            android:orientation="horizontal"
+            android:padding="6dp"
+            app:layout_constraintEnd_toStartOf="@+id/btn_favorite"
+            app:layout_constraintStart_toEndOf="@+id/card_logo"
+            app:layout_constraintTop_toBottomOf="@+id/tv_channel_name">
+
+            <View
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/live_indicator" />
+
+            <TextView
+                android:id="@+id/tv_current_program"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/text_primary_light"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="Noticias del Mediodía" />
+
+            <TextView
+                android:id="@+id/tv_current_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:textColor="@color/text_primary_light"
+                android:textSize="10sp"
+                android:alpha="0.8"
+                tools:text="12:00-13:00" />
+
+        </LinearLayout>
+
+        <!-- Next Program -->
+        <LinearLayout
+            android:id="@+id/ll_next_program"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="3dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/next_program_background"
+            android:orientation="horizontal"
+            android:padding="6dp"
+            app:layout_constraintEnd_toStartOf="@+id/btn_favorite"
+            app:layout_constraintStart_toEndOf="@+id/card_logo"
+            app:layout_constraintTop_toBottomOf="@+id/ll_current_program">
+
+            <ImageView
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="6dp"
+                android:src="@drawable/ic_next_program"
+                android:tint="@color/primary_dark"
+                android:alpha="0.6" />
+
+            <TextView
+                android:id="@+id/tv_next_program"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/text_primary_dark"
+                android:textSize="11sp"
+                android:alpha="0.8"
+                tools:text="Siguiente: Deportes de la Tarde" />
+
+            <TextView
+                android:id="@+id/tv_next_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:textColor="@color/text_primary_dark"
+                android:textSize="9sp"
+                android:alpha="0.6"
+                tools:text="13:00" />
+
+        </LinearLayout>
+
+        <!-- Favorite Button -->
+        <ImageButton
+            android:id="@+id/btn_favorite"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/favorite_button_background"
+            android:src="@drawable/ic_favorite_border"
+            android:tint="@color/favorite_active"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ContentDescription" />
+
+        <!-- Channel Quality/Category Badge -->
+        <TextView
+            android:id="@+id/tv_channel_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/category_badge_background"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:textColor="@color/text_primary_light"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="@+id/card_logo"
+            app:layout_constraintTop_toTopOf="@+id/card_logo"
+            tools:text="HD" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

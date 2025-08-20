@@ -1,8 +1,11 @@
 package com.kybers.xtream
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,11 +24,10 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
-        supportActionBar?.hide()
-        
         profileManager = ProfileManager(this)
         setupViews()
         loadProfiles()
+        startAnimations()
     }
     
     private fun setupViews() {
@@ -37,7 +39,7 @@ class LoginActivity : AppCompatActivity() {
         }
         
         binding.tvAddProfile.setOnClickListener {
-            showForm()
+            showFormAnimated()
         }
     }
     
@@ -50,27 +52,6 @@ class LoginActivity : AppCompatActivity() {
         }
     }
     
-    private fun showProfileSelection(profiles: List<UserProfile>) {
-        binding.rvProfiles.visibility = View.VISIBLE
-        binding.tvAddProfile.visibility = View.VISIBLE
-        binding.llForm.visibility = View.GONE
-        
-        profileAdapter = ProfileAdapter(profiles) { profile ->
-            profileManager.setCurrentProfile(profile)
-            proceedToLoading()
-        }
-        
-        binding.rvProfiles.apply {
-            layoutManager = LinearLayoutManager(this@LoginActivity)
-            adapter = profileAdapter
-        }
-    }
-    
-    private fun showForm() {
-        binding.rvProfiles.visibility = View.GONE
-        binding.tvAddProfile.visibility = View.GONE
-        binding.llForm.visibility = View.VISIBLE
-    }
     
     private fun validateForm(): Boolean {
         val profileName = binding.etProfileName.text.toString().trim()
@@ -122,6 +103,79 @@ class LoginActivity : AppCompatActivity() {
     
     private fun proceedToLoading() {
         startActivity(Intent(this, LoadingActivity::class.java))
+        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
         finish()
+    }
+    
+    private fun startAnimations() {
+        // Header animation
+        val translateYHeader = ObjectAnimator.ofFloat(binding.cardHeader, "translationY", -100f, 0f)
+        val alphaHeader = ObjectAnimator.ofFloat(binding.cardHeader, "alpha", 0f, 1f)
+        
+        val headerAnimatorSet = AnimatorSet()
+        headerAnimatorSet.playTogether(translateYHeader, alphaHeader)
+        headerAnimatorSet.duration = 600
+        headerAnimatorSet.interpolator = DecelerateInterpolator()
+        
+        // Form animation
+        val translateYForm = ObjectAnimator.ofFloat(binding.cardForm, "translationY", 100f, 0f)
+        val alphaForm = ObjectAnimator.ofFloat(binding.cardForm, "alpha", 0f, 1f)
+        
+        val formAnimatorSet = AnimatorSet()
+        formAnimatorSet.playTogether(translateYForm, alphaForm)
+        formAnimatorSet.duration = 600
+        formAnimatorSet.interpolator = DecelerateInterpolator()
+        formAnimatorSet.startDelay = 300
+        
+        // Start animations
+        headerAnimatorSet.start()
+        formAnimatorSet.start()
+    }
+    
+    private fun showProfileSelection(profiles: List<UserProfile>) {
+        binding.cardProfiles.visibility = View.VISIBLE
+        binding.cardForm.visibility = View.GONE
+        
+        // Animate profiles card
+        val alphaProfiles = ObjectAnimator.ofFloat(binding.cardProfiles, "alpha", 0f, 1f)
+        val scaleXProfiles = ObjectAnimator.ofFloat(binding.cardProfiles, "scaleX", 0.8f, 1f)
+        val scaleYProfiles = ObjectAnimator.ofFloat(binding.cardProfiles, "scaleY", 0.8f, 1f)
+        
+        val profilesAnimatorSet = AnimatorSet()
+        profilesAnimatorSet.playTogether(alphaProfiles, scaleXProfiles, scaleYProfiles)
+        profilesAnimatorSet.duration = 400
+        profilesAnimatorSet.interpolator = DecelerateInterpolator()
+        profilesAnimatorSet.start()
+        
+        profileAdapter = ProfileAdapter(profiles) { profile ->
+            profileManager.setCurrentProfile(profile)
+            proceedToLoading()
+        }
+        
+        binding.rvProfiles.apply {
+            layoutManager = LinearLayoutManager(this@LoginActivity)
+            adapter = profileAdapter
+        }
+    }
+    
+    private fun showFormAnimated() {
+        binding.cardProfiles.visibility = View.GONE
+        binding.cardForm.visibility = View.VISIBLE
+        
+        // Animate form card
+        val alphaForm = ObjectAnimator.ofFloat(binding.cardForm, "alpha", 0f, 1f)
+        val scaleXForm = ObjectAnimator.ofFloat(binding.cardForm, "scaleX", 0.8f, 1f)
+        val scaleYForm = ObjectAnimator.ofFloat(binding.cardForm, "scaleY", 0.8f, 1f)
+        
+        val formAnimatorSet = AnimatorSet()
+        formAnimatorSet.playTogether(alphaForm, scaleXForm, scaleYForm)
+        formAnimatorSet.duration = 400
+        formAnimatorSet.interpolator = DecelerateInterpolator()
+        formAnimatorSet.start()
+    }
+    
+    private fun showForm() {
+        binding.cardProfiles.visibility = View.GONE
+        binding.cardForm.visibility = View.VISIBLE
     }
 }

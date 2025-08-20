@@ -6,6 +6,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Window
 import com.bumptech.glide.Glide
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.source.hls.HlsMediaSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.kybers.xtream.R
 import com.kybers.xtream.data.model.Movie
 import com.kybers.xtream.databinding.DialogMovieDetailsBinding
@@ -18,6 +22,7 @@ class MovieDetailsDialog(
 ) : Dialog(context) {
     
     private lateinit var binding: DialogMovieDetailsBinding
+    private var exoPlayer: ExoPlayer? = null
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +39,23 @@ class MovieDetailsDialog(
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         
         setupViews()
+        setupPlayer()
+    }
+    
+    private fun setupPlayer() {
+        exoPlayer = ExoPlayer.Builder(context).build()
+        binding.playerViewMovie.player = exoPlayer
+        
+        try {
+            val dataSourceFactory = DefaultHttpDataSource.Factory()
+            val mediaSource = HlsMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(movie.streamUrl))
+            
+            exoPlayer?.setMediaSource(mediaSource)
+            exoPlayer?.prepare()
+        } catch (e: Exception) {
+            // Handle error loading movie
+        }
     }
     
     private fun setupViews() {
@@ -57,6 +79,7 @@ class MovieDetailsDialog(
             
             // Click listeners
             btnClose.setOnClickListener {
+                exoPlayer?.release()
                 dismiss()
             }
             
@@ -75,5 +98,11 @@ class MovieDetailsDialog(
             //     if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_black_24dp
             // )
         }
+    }
+    
+    override fun dismiss() {
+        exoPlayer?.release()
+        exoPlayer = null
+        super.dismiss()
     }
 }

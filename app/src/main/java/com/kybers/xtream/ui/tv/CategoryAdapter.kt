@@ -1,5 +1,6 @@
 package com.kybers.xtream.ui.tv
 
+import android.animation.ObjectAnimator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,11 +10,12 @@ import com.kybers.xtream.data.model.Channel
 import com.kybers.xtream.databinding.ItemCategoryBinding
 
 class CategoryAdapter(
-    private val onChannelClick: (Channel) -> Unit
+    private val onChannelClick: (Channel) -> Unit,
+    private val onFavoriteClick: (Channel) -> Unit
 ) : RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
 
     private var categories: Map<String, List<Channel>> = emptyMap()
-    private var expandedCategories = mutableSetOf<String>()
+    private var expandedCategory: String? = null
 
     class CategoryViewHolder(private val binding: ItemCategoryBinding) : 
         RecyclerView.ViewHolder(binding.root) {
@@ -23,14 +25,24 @@ class CategoryAdapter(
             channels: List<Channel>, 
             isExpanded: Boolean,
             onChannelClick: (Channel) -> Unit,
+            onFavoriteClick: (Channel) -> Unit,
             onCategoryClick: (String) -> Unit
         ) {
             binding.tvCategoryName.text = categoryName
             binding.tvChannelCount.text = channels.size.toString()
             
-            // Setup expand/collapse
-            binding.ivExpand.rotation = if (isExpanded) 180f else 0f
+            // Animate expand/collapse icon
+            val targetRotation = if (isExpanded) 180f else 0f
+            if (binding.ivExpand.rotation != targetRotation) {
+                ObjectAnimator.ofFloat(binding.ivExpand, "rotation", binding.ivExpand.rotation, targetRotation).apply {
+                    duration = 200
+                    start()
+                }
+            }
+            
+            // Show/hide content
             binding.rvChannels.visibility = if (isExpanded) View.VISIBLE else View.GONE
+            binding.separator.visibility = if (isExpanded) View.VISIBLE else View.GONE
             
             binding.llCategoryHeader.setOnClickListener {
                 onCategoryClick(categoryName)
@@ -38,7 +50,11 @@ class CategoryAdapter(
             
             // Setup channels RecyclerView
             if (isExpanded) {
-                val channelAdapter = ChannelAdapter(channels, onChannelClick)
+                val channelAdapter = ChannelAdapter(
+                    onChannelClick = onChannelClick,
+                    onFavoriteClick = onFavoriteClick
+                )
+                channelAdapter.updateChannels(channels)
                 binding.rvChannels.apply {
                     layoutManager = LinearLayoutManager(binding.root.context)
                     adapter = channelAdapter
@@ -59,9 +75,9 @@ class CategoryAdapter(
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val categoryName = categories.keys.elementAt(position)
         val channels = categories[categoryName] ?: emptyList()
-        val isExpanded = expandedCategories.contains(categoryName)
+        val isExpanded = expandedCategory == categoryName
         
-        holder.bind(categoryName, channels, isExpanded, onChannelClick) { category ->
+        holder.bind(categoryName, channels, isExpanded, onChannelClick, onFavoriteClick) { category ->
             toggleCategory(category)
         }
     }
@@ -74,11 +90,20 @@ class CategoryAdapter(
     }
     
     private fun toggleCategory(categoryName: String) {
-        if (expandedCategories.contains(categoryName)) {
-            expandedCategories.remove(categoryName)
+        val previousExpanded = expandedCategory
+        expandedCategory = if (expandedCategory == categoryName) {
+            null // Contraer la categoría actual
         } else {
-            expandedCategories.add(categoryName)
+            categoryName // Expandir nueva categoría
         }
-        notifyDataSetChanged()
+        
+        // Notificar cambios solo para las categorías afectadas
+        if (previousExpanded != null) {
+            val previousIndex = categories.keys.indexOf(previousExpanded)
+            if (previousIndex >= 0) notifyItemChanged(previousIndex)
+        }
+        
+        val currentIndex = categories.keys.indexOf(categoryName)
+        if (currentIndex >= 0) notifyItemChanged(currentIndex)
     }
 }

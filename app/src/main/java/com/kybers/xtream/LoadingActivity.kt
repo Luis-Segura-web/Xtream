@@ -1,9 +1,12 @@
 package com.kybers.xtream
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.animation.DecelerateInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import com.kybers.xtream.data.CacheManager
 import com.kybers.xtream.data.ProfileManager
@@ -35,6 +38,7 @@ class LoadingActivity : AppCompatActivity() {
         cacheManager = CacheManager(this)
         profileManager = ProfileManager(this)
         
+        startAnimations()
         checkCacheAndLoad()
     }
     
@@ -149,6 +153,74 @@ class LoadingActivity : AppCompatActivity() {
     
     private fun proceedToMain() {
         startActivity(Intent(this, MainActivity::class.java))
+        overridePendingTransition(android.R.anim.slide_in_left, android.R.anim.slide_out_right)
         finish()
+    }
+    
+    private fun startAnimations() {
+        // Logo animation
+        val scaleXLogo = ObjectAnimator.ofFloat(binding.cardLogo, "scaleX", 0f, 1f)
+        val scaleYLogo = ObjectAnimator.ofFloat(binding.cardLogo, "scaleY", 0f, 1f)
+        val alphaLogo = ObjectAnimator.ofFloat(binding.cardLogo, "alpha", 0f, 1f)
+        
+        val logoAnimatorSet = AnimatorSet()
+        logoAnimatorSet.playTogether(scaleXLogo, scaleYLogo, alphaLogo)
+        logoAnimatorSet.duration = 800
+        logoAnimatorSet.interpolator = DecelerateInterpolator()
+        
+        // Title animation
+        val translateYTitle = ObjectAnimator.ofFloat(binding.tvLoadingTitle, "translationY", 50f, 0f)
+        val alphaTitle = ObjectAnimator.ofFloat(binding.tvLoadingTitle, "alpha", 0f, 1f)
+        
+        val titleAnimatorSet = AnimatorSet()
+        titleAnimatorSet.playTogether(translateYTitle, alphaTitle)
+        titleAnimatorSet.duration = 600
+        titleAnimatorSet.startDelay = 300
+        titleAnimatorSet.interpolator = DecelerateInterpolator()
+        
+        // Subtitle animation
+        val alphaSubtitle = ObjectAnimator.ofFloat(binding.tvSubtitle, "alpha", 0f, 1f)
+        alphaSubtitle.duration = 500
+        alphaSubtitle.startDelay = 600
+        
+        // Progress card animation
+        val scaleXProgress = ObjectAnimator.ofFloat(binding.cardProgress, "scaleX", 0.8f, 1f)
+        val scaleYProgress = ObjectAnimator.ofFloat(binding.cardProgress, "scaleY", 0.8f, 1f)
+        val alphaProgress = ObjectAnimator.ofFloat(binding.cardProgress, "alpha", 0f, 1f)
+        
+        val progressAnimatorSet = AnimatorSet()
+        progressAnimatorSet.playTogether(scaleXProgress, scaleYProgress, alphaProgress)
+        progressAnimatorSet.duration = 600
+        progressAnimatorSet.startDelay = 900
+        progressAnimatorSet.interpolator = DecelerateInterpolator()
+        
+        // Status animation
+        val alphaStatus = ObjectAnimator.ofFloat(binding.tvLoadingStatus, "alpha", 0f, 1f)
+        val scaleXStatus = ObjectAnimator.ofFloat(binding.tvLoadingStatus, "scaleX", 0.8f, 1f)
+        val scaleYStatus = ObjectAnimator.ofFloat(binding.tvLoadingStatus, "scaleY", 0.8f, 1f)
+        
+        val statusAnimatorSet = AnimatorSet()
+        statusAnimatorSet.playTogether(alphaStatus, scaleXStatus, scaleYStatus)
+        statusAnimatorSet.duration = 400
+        statusAnimatorSet.startDelay = 1200
+        statusAnimatorSet.interpolator = DecelerateInterpolator()
+        
+        // Background circles rotation
+        val rotateCircle1 = ObjectAnimator.ofFloat(binding.circle1, "rotation", 0f, 360f)
+        rotateCircle1.duration = 15000
+        rotateCircle1.repeatCount = ObjectAnimator.INFINITE
+        
+        val rotateCircle2 = ObjectAnimator.ofFloat(binding.circle2, "rotation", 360f, 0f)
+        rotateCircle2.duration = 20000
+        rotateCircle2.repeatCount = ObjectAnimator.INFINITE
+        
+        // Start all animations
+        logoAnimatorSet.start()
+        titleAnimatorSet.start()
+        alphaSubtitle.start()
+        progressAnimatorSet.start()
+        statusAnimatorSet.start()
+        rotateCircle1.start()
+        rotateCircle2.start()
     }
 }

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Opciones de ordenamiento"
+        android:textColor="@color/text_primary_dark"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Categories Section -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Categorías"
+        android:textColor="@color/text_secondary_dark"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp" />
+
+    <RadioGroup
+        android:id="@+id/rg_category_sort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp">
+
+        <RadioButton
+            android:id="@+id/rb_category_default"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Por defecto"
+            android:textColor="@color/text_primary_dark"
+            android:checked="true" />
+
+        <RadioButton
+            android:id="@+id/rb_category_az"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="A - Z"
+            android:textColor="@color/text_primary_dark" />
+
+        <RadioButton
+            android:id="@+id/rb_category_za"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Z - A"
+            android:textColor="@color/text_primary_dark" />
+
+    </RadioGroup>
+
+    <!-- Items Section -->
+    <TextView
+        android:id="@+id/tv_items_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Canales"
+        android:textColor="@color/text_secondary_dark"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp" />
+
+    <RadioGroup
+        android:id="@+id/rg_items_sort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp">
+
+        <RadioButton
+            android:id="@+id/rb_items_default"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Por defecto"
+            android:textColor="@color/text_primary_dark"
+            android:checked="true" />
+
+        <RadioButton
+            android:id="@+id/rb_items_az"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="A - Z"
+            android:textColor="@color/text_primary_dark" />
+
+        <RadioButton
+            android:id="@+id/rb_items_za"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Z - A"
+            android:textColor="@color/text_primary_dark" />
+
+    </RadioGroup>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_cancel"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancelar"
+            android:textColor="@color/text_secondary_dark"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btn_apply"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Aplicar"
+            android:backgroundTint="@color/accent_blue" />
+
+    </LinearLayout>
+
+</LinearLayout>

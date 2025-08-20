@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Material Design Base Colors -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
@@ -8,9 +9,66 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     
-    <!-- Xtream Colors -->
-    <color name="splash_background">#FF1A1A2E</color>
-    <color name="primary_dark">#FF16213E</color>
-    <color name="accent_blue">#FF0F3460</color>
-    <color name="accent_orange">#FFE94560</color>
+    <!-- Xtream Primary Palette - Mejorada para mejor contraste -->
+    <color name="splash_background">#FF0D1421</color>         <!-- Azul muy oscuro para splash -->
+    <color name="primary_dark">#FF1B2838</color>              <!-- Azul oscuro principal -->
+    <color name="primary_medium">#FF2A3F5F</color>            <!-- Azul medio -->
+    <color name="primary_light">#FF4A6741</color>             <!-- Azul claro -->
+    
+    <!-- Accent Colors - Optimizados para accesibilidad -->
+    <color name="accent_blue">#FF2196F3</color>               <!-- Azul vibrante Material -->
+    <color name="accent_blue_dark">#FF1976D2</color>          <!-- Azul oscuro para hover -->
+    <color name="accent_blue_light">#FF64B5F6</color>         <!-- Azul claro para backgrounds -->
+    
+    <color name="accent_orange">#FFFF6D00</color>             <!-- Naranja vibrante -->
+    <color name="accent_orange_dark">#FFF57600</color>        <!-- Naranja oscuro para hover -->
+    <color name="accent_orange_light">#FFFF9800</color>       <!-- Naranja claro para backgrounds -->
+    
+    <color name="accent_purple">#FF9C27B0</color>             <!-- Púrpura vibrante -->
+    <color name="accent_purple_dark">#FF7B1FA2</color>        <!-- Púrpura oscuro para hover -->
+    <color name="accent_purple_light">#FFBA68C8</color>       <!-- Púrpura claro para backgrounds -->
+    
+    <!-- Success & Error Colors -->
+    <color name="success_green">#FF4CAF50</color>             <!-- Verde para éxito -->
+    <color name="success_green_light">#FF81C784</color>       <!-- Verde claro -->
+    <color name="error_red">#FFF44336</color>                 <!-- Rojo para errores -->
+    <color name="error_red_light">#FFE57373</color>           <!-- Rojo claro -->
+    
+    <!-- Text Colors - Alta legibilidad -->
+    <color name="text_primary_dark">#FF212121</color>         <!-- Texto principal oscuro -->
+    <color name="text_secondary_dark">#FF424242</color>       <!-- Texto secundario oscuro -->
+    <color name="text_primary_light">#FFFFFFFF</color>        <!-- Texto principal claro -->
+    <color name="text_secondary_light">#FFEEEEEE</color>      <!-- Texto secundario claro -->
+    <color name="text_hint">#FF9E9E9E</color>                 <!-- Texto de ayuda -->
+    
+    <!-- Background Colors -->
+    <color name="background_light">#FFFFFFFF</color>          <!-- Fondo claro -->
+    <color name="background_light_secondary">#FFFAFAFA</color> <!-- Fondo claro secundario -->
+    <color name="background_dark">#FF121212</color>           <!-- Fondo oscuro -->
+    <color name="background_dark_secondary">#FF1E1E1E</color> <!-- Fondo oscuro secundario -->
+    
+    <!-- Surface Colors -->
+    <color name="surface_light">#FFFFFFFF</color>             <!-- Superficie clara -->
+    <color name="surface_light_elevated">#FFF5F5F5</color>    <!-- Superficie elevada clara -->
+    <color name="surface_dark">#FF1E1E1E</color>              <!-- Superficie oscura -->
+    <color name="surface_dark_elevated">#FF2D2D2D</color>     <!-- Superficie elevada oscura -->
+    
+    <!-- Utility Colors -->
+    <color name="divider_light">#FFE0E0E0</color>             <!-- Divisor claro -->
+    <color name="divider_dark">#FF424242</color>              <!-- Divisor oscuro -->
+    <color name="overlay_light">#80FFFFFF</color>             <!-- Overlay claro -->
+    <color name="overlay_dark">#80000000</color>              <!-- Overlay oscuro -->
+    
+    <!-- Special UI Colors -->
+    <color name="live_indicator">#FFFF1744</color>            <!-- Indicador en vivo -->
+    <color name="favorite_active">#FFFF6D00</color>           <!-- Favorito activo -->
+    <color name="favorite_inactive">#FF9E9E9E</color>         <!-- Favorito inactivo -->
+    <color name="badge_hd">#FF4CAF50</color>                  <!-- Badge HD -->
+    <color name="badge_4k">#FFFF9800</color>                  <!-- Badge 4K -->
+    
+    <!-- Transparency Variants -->
+    <color name="accent_blue_10">#1A2196F3</color>            <!-- 10% transparencia -->
+    <color name="accent_blue_20">#332196F3</color>            <!-- 20% transparencia -->
+    <color name="accent_orange_10">#1AFF6D00</color>          <!-- 10% transparencia -->
+    <color name="accent_orange_20">#33FF6D00</color>          <!-- 20% transparencia -->
 </resources>

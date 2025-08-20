@@ -8,6 +8,10 @@ import android.view.Window
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.source.hls.HlsMediaSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.kybers.xtream.R
 import com.kybers.xtream.data.model.Episode
 import com.kybers.xtream.data.model.Series
@@ -21,6 +25,8 @@ class SeriesDetailsDialog(
 ) : Dialog(context) {
     
     private lateinit var binding: DialogSeriesDetailsBinding
+    private var exoPlayer: ExoPlayer? = null
+    private var currentEpisode: Episode? = null
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +43,31 @@ class SeriesDetailsDialog(
         window?.setBackgroundDrawableResource(android.R.color.transparent)
         
         setupViews()
+        setupPlayer()
+    }
+    
+    private fun setupPlayer() {
+        exoPlayer = ExoPlayer.Builder(context).build()
+        binding.playerViewSeries.player = exoPlayer
+        
+        // Play first episode if available
+        if (series.episodes.isNotEmpty()) {
+            playEpisode(series.episodes.first())
+        }
+    }
+    
+    private fun playEpisode(episode: Episode) {
+        currentEpisode = episode
+        try {
+            val dataSourceFactory = DefaultHttpDataSource.Factory()
+            val mediaSource = HlsMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(episode.streamUrl))
+            
+            exoPlayer?.setMediaSource(mediaSource)
+            exoPlayer?.prepare()
+        } catch (e: Exception) {
+            // Handle error loading episode
+        }
     }
     
     private fun setupViews() {
@@ -61,8 +92,7 @@ class SeriesDetailsDialog(
             
             // Setup episodes RecyclerView
             val episodeAdapter = EpisodeAdapter(series.episodes) { episode ->
-                onEpisodePlay(episode)
-                dismiss()
+                playEpisode(episode)
             }
             rvEpisodes.apply {
                 layoutManager = LinearLayoutManager(context)
@@ -71,6 +101,7 @@ class SeriesDetailsDialog(
             
             // Click listeners
             btnClose.setOnClickListener {
+                exoPlayer?.release()
                 dismiss()
             }
             
@@ -93,5 +124,11 @@ class SeriesDetailsDialog(
             //     if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_black_24dp
             // )
         }
+    }
+    
+    override fun dismiss() {
+        exoPlayer?.release()
+        exoPlayer = null
+        super.dismiss()
     }
 }
